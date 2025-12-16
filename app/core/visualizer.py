@@ -4,15 +4,22 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import os
 
 class Plotter:
     """ Herramientas para graficar la simulación del Quadrotor. """
     
-    def __init__(self):
-        plt.style.use('seaborn-v0_8')
+    def __init__(self, plot_dir:str):
+        self.plot_dir = plot_dir
+        os.makedirs(self.plot_dir, exist_ok=True)
 
-    def plot_3d_trajectory(self, hist_pos, target_pos):
+        plt.style.use("seaborn-v0_8")
+
+
+    def plot_3d_trajectory(self, hist_pos, target_pos, filename=None):
         """ Visualiza la trayectoria 3D. """
+        
+
         fig = plt.figure(figsize=(10, 8))
         ax = fig.add_subplot(111, projection='3d')
         
@@ -27,9 +34,11 @@ class Plotter:
         ax.set_zlabel('Z (m)')
         ax.set_title('Trayectoria 3D del Quadrotor Controlado')
         ax.legend()
+        if filename: plt.savefig(os.path.join(self.plot_dir, filename))
         plt.show()
 
-    def plot_errors_2d(self, hist_time, hist_att, hist_pos, target_pos):
+
+    def plot_2d_erors(self, hist_time, hist_att, hist_pos, target_pos, filename=None):
         """ Visualiza la evolución de los errores de control. """
         
         # Errores de Posición (X, Y, Z)
@@ -58,4 +67,5 @@ class Plotter:
         axs[-1].set_xlabel('Tiempo (s)')
         
         plt.tight_layout()
+        if filename: plt.savefig(os.path.join(self.plot_dir, filename))
         plt.show()
