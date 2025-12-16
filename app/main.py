@@ -84,7 +84,7 @@ class Drone:
         logger.debug("Generando Gráficas de Trayectoria y Errores...")
         
         # Animación de la Trayectoria
-        self.plotter.animate_3d_trajectory(hist_pos, self.TARGET_POS, self.dt)
+        self.plotter.animate_3d_trajectory(hist_pos, self.TARGET_POS, self.dt, "3d_trajectory.gif")
 
         # Visualización de la Trayectoria
         #self.plotter.plot_3d_trajectory(hist_pos, self.TARGET_POS, filename="3d_trajectory.png")

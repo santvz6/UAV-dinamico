@@ -88,7 +88,7 @@ class Plotter:
         plt.show()
 
 
-    def animate_3d_trajectory(self, hist_pos, target_pos, time_step):
+    def animate_3d_trajectory(self, hist_pos, target_pos, time_step, filename):
         """
         Genera una animación 3D de la trayectoria de posición del dron.
         Necesita el historial de posición y el paso de tiempo (dt).
@@ -157,4 +157,5 @@ class Plotter:
         )
 
         plt.legend()
+        ani.save(os.path.join(self.plot_dir, filename), writer="pillow", fps=30)
         plt.show()
