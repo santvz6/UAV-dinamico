@@ -15,7 +15,7 @@ El sistema se modela como un grafo dinámico, donde el flujo se rige por la capa
     2.  **Decisión de Enrutamiento:** En cada nodo, el paquete/vehículo elige el siguiente enlace basándose en una métrica dinámica (ej. el camino con el *tiempo de viaje estimado más bajo* en ese instante).
     3.  **Bucle de Retroalimentación:** La elección del "mejor" camino aumenta su carga, lo que a su vez aumenta su tiempo de viaje, haciendo que **otros caminos sean más atractivos** en el siguiente instante.
 
-### 2. Simulación y Visualización (Colab)
+### 2. Simulación y Visualización (ipynb)
 
 * **Enfoque Técnico:** Requiere la implementación de un algoritmo de búsqueda de ruta (ej. Dijkstra o A*) que se recalcula dinámicamente, y la implementación de una función de coste de enlace que dependa de la carga actual (función no lineal).
 * **Visualización (Alto Interés):**
