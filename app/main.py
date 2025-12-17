@@ -30,9 +30,8 @@ class Drone:
 
     def run(self, visualize=False):
         history = np.zeros((self.steps, self.X_state.shape[0]))
-        U_history = np.zeros((self.steps, 4))
+        U_history = np.zeros((self.steps, 4)) # U = F1 + F2 + F3 + F4
         hist_time = np.zeros(self.steps)
-        hist_vel = np.zeros((self.steps, 3))
         hist_T = np.zeros(self.steps)
 
         for i in range(self.steps):
@@ -63,7 +62,6 @@ class Drone:
             # Almacenamos los Históricos
             history[i, :] = self.X_state
             U_history[i, :] = U
-            hist_vel[i, :] = self.X_state[3:6]
             hist_T[i] = np.sum(U)
             hist_time[i] = t
 
@@ -72,21 +70,22 @@ class Drone:
             f"Y={self.X_state[1]:.2f} m, Z={self.X_state[2]:.2f} m"
         )
 
-        if visualize: self.visualize(history, hist_time, hist_vel, hist_T)
+        if visualize: self.visualize(history, hist_time, hist_T)
             
             
-    def visualize(self, history, hist_time, hist_vel, hist_T):
+    def visualize(self, history, hist_time, hist_T):
         # Desempaquetar datos para visualización
         hist_pos = history[:, 0:3]
+        hist_vel = history[:, 3:6]
         hist_att = history[:, 6:9]
 
         logger.debug("Generando Gráficas de Trayectoria y Errores...")
         
         # Animación de la Trayectoria
         self.plotter.animate_3d_trajectory(
-            hist_pos=history[:, 0:3],
+            hist_pos=hist_pos,
             hist_vel=hist_vel,
-            hist_att=history[:, 6:9],
+            hist_att=hist_att,
             hist_T=hist_T,
             target_pos=self.TARGET_POS,
             time_step=self.dt,
@@ -94,10 +93,10 @@ class Drone:
         )
 
         # Visualización de la Trayectoria
-        self.plotter.plot_3d_trajectory(hist_pos, self.TARGET_POS, filename="3d_trajectory.png")
+        self.plotter.plot_3d_trajectory(hist_pos, self.TARGET_POS, filename="3d_trajectory.png", show=False)
 
         # Visualización de la Estabilidad
-        self.plotter.plot_2d_erors(hist_time, hist_att, hist_pos, self.TARGET_POS, filename="2d_errors.png")
+        self.plotter.plot_2d_errors(hist_time, hist_att, hist_pos, self.TARGET_POS, filename="2d_errors.png", show=True)
         
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ class Plotter:
         plt.style.use("seaborn-v0_8")
 
 
-    def plot_3d_trajectory(self, hist_pos, target_pos, filename=None):
+    def plot_3d_trajectory(self, hist_pos, target_pos, filename=None, show=True):
         """ Visualiza la trayectoria 3D. (Estática) """
         
         # ... (código existente para la gráfica estática 3D)
@@ -50,43 +50,43 @@ class Plotter:
         ax.set_title('Trayectoria 3D del Quadrotor Controlado')
         ax.legend()
         if filename: plt.savefig(os.path.join(self.plot_dir, filename))
-        plt.show()
+        if show: plt.show()
+        else: plt.close(fig)
 
 
-    def plot_2d_erors(self, hist_time, hist_att, hist_pos, target_pos, filename=None):
-        """ Visualiza la evolución de los errores de control. """
+    def plot_2d_errors(self, hist_time, hist_att, hist_pos, target_pos, filename=None, show=True):
+        """ Visualiza la evolución de los errores de control en un único subplot. """
+
+        fig, axs = plt.subplots(6, 1, figsize=(10, 12), sharex=True)
         
-        # Errores de Posición (X, Y, Z)
-        fig, axs = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
-        pos_labels = ['X', 'Y', 'Z']
+        # Etiquetas
+        pos_labels = ["X", "Y", "Z"]
+        att_labels = ["Roll ($\\phi$)", "Pitch ($\\theta$)", "Yaw ($\\psi$)"]
         
+        # Errores de posición
         for i in range(3):
-            axs[i].plot(hist_time, hist_pos[:, i] - target_pos[i], label=f'Error {pos_labels[i]}')
-            axs[i].axhline(0, color='red', linestyle='--', linewidth=0.8)
-            axs[i].set_ylabel(f'Error {pos_labels[i]} (m)')
+            axs[i].plot(hist_time, hist_pos[:, i] - target_pos[i], label=f"Error {pos_labels[i]}")
+            axs[i].axhline(0, color="red", linestyle="--", linewidth=0.8)
+            axs[i].set_ylabel(f"Error {pos_labels[i]} (m)")
             axs[i].grid(True)
-        axs[0].set_title('Errores de Posición vs. Tiempo')
-        axs[-1].set_xlabel('Tiempo (s)')
+            axs[i].legend()
         
-        # Errores de Actitud (Roll, Pitch, Yaw)
-        fig, axs = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
-        att_labels = ['Roll ($\phi$)', 'Pitch ($\\theta$)', 'Yaw ($\psi$)']
-        
+        axs[0].set_title("Errores de Posición y Actitud vs. Tiempo")
+
+        # Errores de actitud
         for i in range(3):
-            # Asumimos que la referencia de actitud es 0 (para hover estable)
-            # Nota: Los errores de actitud deberían compararse con ref_angles, 
-            # pero como en main.py solo se guardan los ángulos absolutos y
-            # la referencia es 0 para el hover, usamos hist_att[:, i].
-            axs[i].plot(hist_time, hist_att[:, i], label=f'{att_labels[i]}')
-            axs[i].axhline(0, color='red', linestyle='--', linewidth=0.8)
-            axs[i].set_ylabel(f'Ángulo {att_labels[i]} (rad)')
-            axs[i].grid(True)
-        axs[0].set_title('Ángulos de Actitud vs. Tiempo')
-        axs[-1].set_xlabel('Tiempo (s)')
+            axs[i+3].plot(hist_time, hist_att[:, i], label=f"{att_labels[i]}")
+            axs[i+3].axhline(0, color="red", linestyle="--", linewidth=0.8)
+            axs[i+3].set_ylabel(f"Ángulo {att_labels[i]} (rad)")
+            axs[i+3].grid(True)
+            axs[i+3].legend()
+        
+        axs[-1].set_xlabel("Tiempo (s)")
         
         plt.tight_layout()
         if filename: plt.savefig(os.path.join(self.plot_dir, filename))
-        plt.show()
+        if show: plt.show()
+        else: plt.close(fig)
 
     def animate_3d_trajectory(self, hist_pos, hist_vel, hist_att, hist_T,
                            target_pos, time_step, filename):
