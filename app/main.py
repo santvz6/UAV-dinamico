@@ -7,9 +7,7 @@ from config import PLOT_DIR
 from core import QuadrotorDynamics, CascadedController, Plotter
 
 class Drone:
-
     def __init__(self, T_end:float):
-        
         self.quadrotor= QuadrotorDynamics(L=0.2)
         self.controller = CascadedController(self.quadrotor)
         self.plotter = Plotter(dynamics=self.quadrotor, plot_dir=PLOT_DIR)
@@ -20,12 +18,14 @@ class Drone:
         self.time = np.arange(0, self.T_end, self.dt)
         self.steps = len(self.time)
 
-        # Objetivo de la Misión: Hover
+        # Waypoints
+        self.waypoints_detection = 1 # metros
+        self.waypoints_times = []
         self.waypoints = [
-            np.array([20.0, -20.0, 50.0]),
-            np.array([40.0, 0.0, 60.0]),
-            np.array([20.0, 20.0, 50.0]),
-            np.array([0.0, 0.0, 40.0])
+            np.array([0.0, 0.0, 10.0]),
+            np.array([5.0, 0.0, 5.0]),
+            np.array([0.0, 5.0, 0.0]),
+            np.array([0.0, 0.0, 0.0])
         ]
         self.current_wp_idx = 0
         self.TARGET_POS = self.waypoints[self.current_wp_idx]
@@ -33,29 +33,34 @@ class Drone:
         # Estado inicial = [x, y, z, vx, vy, vz, phi, theta, psi, p, q, r]
         self.X_state = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, -0.05, 0.0, 0.0, 0.0, 0.0])
 
-    def run(self, visualize=False):
+    def run(self, pos_subsampling):
         history = np.zeros((self.steps, self.X_state.shape[0]))
         U_history = np.zeros((self.steps, 4)) # U = F1 + F2 + F3 + F4
         hist_time = np.zeros(self.steps)
         hist_T = np.zeros(self.steps)
 
+        logger.debug("Iniciando simulación...")
         for i in range(self.steps):
             t = self.time[i]
-
  
             target_distance = np.linalg.norm(self.TARGET_POS - self.X_state[0:3])
-            if target_distance < 5: 
+            if target_distance < self.waypoints_detection: 
                 if self.current_wp_idx < len(self.waypoints) - 1:
+                    
+                    if t not in self.waypoints_times: # Evitamos duplicados en el mismo paso
+                        self.waypoints_times.append(t)
+                    
                     self.current_wp_idx += 1
                     self.TARGET_POS = self.waypoints[self.current_wp_idx]
                     logger.info(f"Punto alcanzado! Rumbo al Waypoint {self.current_wp_idx}")
                 else:
-                    # Si quieres que el circuito sea infinito (bucle)
+                    # Circuito infinito
                     self.current_wp_idx = 0
                     self.TARGET_POS = self.waypoints[self.current_wp_idx]
             
             # Control de Posición
-            T_total, ref_angles = self.controller.control_position(self.X_state, self.TARGET_POS)
+            if i % pos_subsampling == 0:    
+                T_total, ref_angles = self.controller.control_position(self.X_state, self.TARGET_POS)
             
             # Control de Actitud (retorna torques Tau)
             Tau_ctrl = self.controller.control_attitude(self.X_state, ref_angles)
@@ -87,7 +92,7 @@ class Drone:
             f"Y={self.X_state[1]:.2f} m, Z={self.X_state[2]:.2f} m"
         )
 
-        if visualize: self.visualize(history, hist_time, hist_T)
+        self.visualize(history, hist_time, hist_T)
             
             
     def visualize(self, history, hist_time, hist_T):
@@ -110,12 +115,12 @@ class Drone:
         )
 
         # Visualización de la Trayectoria
-        self.plotter.plot_3d_trajectory(hist_pos, self.TARGET_POS, filename="3d_trajectory.png", show=False)
+        self.plotter.plot_3d_trajectory(hist_pos, self.waypoints, filename="3d_trajectory.png", show=False)
 
         # Visualización de la Estabilidad
-        self.plotter.plot_2d_errors(hist_time, hist_att, hist_pos, self.TARGET_POS, filename="2d_errors.png", show=True)
+        self.plotter.plot_2d_errors(hist_time, hist_att, hist_pos, self.waypoints, self.waypoints_times, filename="2d_errors.png", show=True)
         
 
 if __name__ == "__main__":
-    drone = Drone(T_end=30)
-    drone.run(visualize=True)
+    drone = Drone(T_end=20)
+    drone.run(pos_subsampling=1)

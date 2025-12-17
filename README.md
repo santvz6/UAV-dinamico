@@ -1,70 +1,54 @@
 # Simulación y Control de un Dron Quadrotor (UAV)
 
-Este proyecto implementa la simulación en tiempo continuo de la dinámica no lineal de un dron Quadrotor y diseña un sistema de control PD en cascada para estabilizarlo y guiarlo a una posición objetivo.
+Mi proyecto presenta el desarrollo de un sistema de control de vuelo de 
+un quadrotor capaz de completar circuitos de navegación. 
 
-## Estructura del Proyecto
+> ## Motivación
+> El objetivo era desarrollar un Sistema Dinámico en la asignatura Modelos Computacionales y Simulación de Sistemas. Dado que en Razonamiento y Representación del Conocimiento diseñamos un Robot Móvil, y además, de pequeño me gustaba la serie *Hover Champions* opté por crear un **Dron** capaz de recorrer un circuito prediseñado.
 
-El proyecto está modularizado en Python (POO) para manejar la complejidad del sistema de 12 EDOs (Ecuaciones Diferenciales Ordinarias) y la lógica de control.
+El objetivo principal ha sido el desarrollo de un sistema dinámico universal capaz de estabilizar y guiar diversas configuraciones de drones. Es decir, nos hemos centrado en la escalabilidad y versatilidad, permitiendo que distintos modelos físicos alcancen resultados óptimos de navegación, sin centrarnos en el diseño de un prototipo único.
 
-| Fichero | Clase Principal | Descripción y Responsabilidad |
-| :--- | :--- | :--- |
-| `dynamics.py` | `QuadrotorDynamics` | Contiene las **12 EDOs no lineales** que rigen el movimiento del dron (posición, velocidad, ángulos y velocidad angular). |
-| `controller.py` | `CascadedController` | Implementa el **control PD en cascada**. El bucle interno estabiliza la actitud, y el bucle externo calcula los ángulos necesarios para alcanzar la posición deseada. |
-| `visualizer.py` | `Plotter` | Genera la **visualización 3D** de la trayectoria y las gráficas 2D de series de tiempo para evaluar el rendimiento del control (errores de posición y ángulos de actitud). |
-| `main.py` | `main()` | Script principal que inicializa el sistema, define la misión (punto objetivo) y ejecuta el bucle de integración numérica. |
 
-## Metodología y Modelo
+## Demostración del Vuelo
 
-### 1. Sistema Dinámico
+*Animación 3D del dron ejecutando el circuito de waypoints definido.*
 
-El Quadrotor es modelado como un sistema de **12 estados** con **seis grados de libertad (6-DOF)**, regido por las leyes de Newton-Euler. El sistema es **sub-actuado** (4 fuerzas de control para 6-DOF), lo que lo hace inherentemente inestable y un desafío de control. 
+![Animacion_3D](app/res/3d_trajectory.gif)
 
-* **Vector de Estado (X):**
-    $$X = [x, y, z, \dot{x}, \dot{y}, \dot{z}, \phi, \theta, \psi, p, q, r]^T$$
-* **Vector de Control (U):** Las fuerzas de empuje de los cuatro rotores ($F_1, F_2, F_3, F_4$).
+---
 
-### 2. Control en Cascada (PD)
+## Ingeniería del Sistema
 
-Se utiliza un enfoque de control en cascada, donde los bucles internos operan más rápido que los externos .
-* **Controlador de Posición (Bucle Externo):** Calcula la **fuerza de empuje total ($T$)** requerida para el eje Z y los **ángulos de actitud deseados ($\phi_d, \theta_d$)** requeridos para moverse en X e Y.
-* **Controlador de Actitud (Bucle Interno):** Utiliza un control PD para calcular los **torques ($\tau_\phi, \tau_\theta, \tau_\psi$)** necesarios para corregir la actitud hacia los ángulos deseados, manteniendo la estabilidad.
+### Control en Cascada (PD)
 
-## Herramientas y Ejecución
+El dron utiliza una arquitectura de control en cascada para separar la navegación de la estabilidad:
 
-### Requisitos
+* **Bucle de Posición:** Traduce la distancia al objetivo en ángulos de inclinación deseados.
+* **Bucle de Actitud:** Ejecuta correcciones de torque a alta frecuencia para mantener el equilibrio, escaladas dinámicamente según la **Inercia** del modelo.
 
-El proyecto requiere las siguientes librerías de Python:
-* `numpy` (Cálculo vectorial)
-* `scipy` (Integración numérica de EDOs, `solve_ivp`)
-* `matplotlib` (Visualización 2D y 3D)
+### Física y Realismo Aerodinámico
 
-### Estructura de Ficheros
+A diferencia de simulaciones básicas, este modelo incluye:
 
-La simulación asume la siguiente estructura de directorios para la correcta importación de los módulos:
+* **Resistencia al Aire ($k_{drag}$):** Modelada en los tres ejes para limitar velocidades irreales y permitir el cálculo de velocidades terminales.
+* **Dinámica Escalable:** El controlador detecta automáticamente el tamaño del dron ($L$) y ajusta su fuerza de giro para evitar oscilaciones en drones pequeños.
+
+---
+
+## Análisis de Rendimiento
+
+Validamos el sistema mediante telemetría para asegurar que, independientemente de la configuración, el comportamiento converge al objetivo:
+
+*Las líneas verdes indican el éxito en la transición de waypoints, demostrando la precisión del seguimiento de ruta.*
+
+![Graficas_Error](app/res/2d_errors.png)
+
+## Cómo Ejecutar el código
+
+1. **Define tu circuito:** Edita la lista `self.waypoints` en `main.py`.
+2. **Configura el dron:** Ajusta la longitud del brazo ($L$) en la clase `Drone`.
+3. **Lanza el vuelo:**
 
 ```bash
-/sistema dinamico
-├── app
-│   ├── dynamics.py
-│   ├── controller.py
-│   ├── visualizer.py
-│   └── main.py
-└── README.md
-```
-
-### Ejecución
-
-El proyecto se ejecuta desde el script principal ubicado en el subdirectorio `app`.
-
-``` bash
 python3 app/main.py
 ```
-
-### Resultados Esperados
-La simulación generará las siguientes salidas visuales:
-
-- Gráfica 3D (Trayectoria): Muestra cómo el dron vuela desde la posición inicial hasta el punto objetivo (definido en main.py), demostrando la capacidad de seguimiento de trayectoria.
-
-- Gráficas 2D (Errores de Posición): Muestra cómo los errores en X, Y y Z convergen a cero en el tiempo, demostrando que el controlador es estable y logra el objetivo.
-
-- Gráficas 2D (Ángulos de Actitud): Muestra cómo los ángulos de Roll ($\phi$) y Pitch ($\theta$) son forzados a cero (o a los ángulos calculados por el bucle externo) para mantener el vuelo estable.

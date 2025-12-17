@@ -15,10 +15,10 @@ class CascadedController:
         
         #### Ganancias de Posición (Bucle Externo: Controla x, y, z)
         # Se suele poner menos agresivo que el bucle interno        
-        self.Kp_pos = np.array([1.0, 1.0, 1.0]) * self.mass / dynamics.m_ref
+        self.Kp_pos = np.array([1.1, 1.1, 1.1]) * self.mass / dynamics.m_ref
         # Kp_pos: Ganancia Proporcional
         # Determina qué tan agresivo es el dron al acercarse al objetivo (acelerador)
-        self.Kd_pos = np.array([2.5, 2.5, 2.5]) * self.mass / dynamics.m_ref # antes Z=5.0 pq no tenia k_drag
+        self.Kd_pos = np.array([2.0, 2.0, 2.0]) * self.mass / dynamics.m_ref # antes Z=5.0 pq no tenia k_drag
         # Kd_pos: Ganancia Derivativa
         # Determina cuánto frena el dron respecto la velocidad objetivo (freno)
         #
@@ -27,11 +27,11 @@ class CascadedController:
 
         ### Ganancias de Actitud (Bucle Interno: Controla phi, theta, psi)
         # Se suele poner más agresivo para que el dron responda rápido a cambios de ángulo
-        self.Kp_att = np.array([5.0, 5.0, 5.0]) * dynamics.I
+        self.Kp_att = np.array([3.5, 3.5, 3.5]) * dynamics.I
         # Kp_att: Ganancia proporcional de actitud
         #  - Controla cuánto responde el dron a un error de ángulo
         #  - Valores altos: respuesta rápida, pero puede generar oscilaciones
-        self.Kd_att = np.array([2.5, 2.5, 2.5]) * dynamics.I
+        self.Kd_att = np.array([5.0, 5.0, 5.0]) * dynamics.I
         # Kd_att: Ganancia derivativa de actitud
         #  - Controla la respuesta frente a la velocidad angular
         #  - Ayuda a amortiguar oscilaciones y suavizar movimientos

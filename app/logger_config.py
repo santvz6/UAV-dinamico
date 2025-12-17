@@ -2,21 +2,13 @@ import logging
 import os
 from datetime import datetime
 
-from config import LOGS_DIR, NUM_LOGS
-
+from config import LOGS_DIR
+from helpers import remove_old_logs
 
 # CONFIGURACIÓN DE RUTAS ÚNICAS 
 os.makedirs(LOGS_DIR, exist_ok=True) 
 
-logs = sorted(
-    [f for f in os.listdir(LOGS_DIR) if f.endswith(".log")],
-    key=lambda x: os.path.getmtime(os.path.join(LOGS_DIR, x))
-)
-
-while len(logs) >= NUM_LOGS:
-    oldest_log = logs.pop(0)
-    os.remove(os.path.join(LOGS_DIR, oldest_log))
-
+remove_old_logs(LOGS_DIR)
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 LOG_FILENAME = f"simulacion_{timestamp}.log"
